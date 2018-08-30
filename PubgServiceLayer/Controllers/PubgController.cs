@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Pubg.Net;
+using PubgServiceLayer.Api;
 
 namespace PubgServiceLayer.Controllers
 {
@@ -11,11 +14,20 @@ namespace PubgServiceLayer.Controllers
     [Route("api/Pubg")]
     public class PubgController : Controller
     {
-        // GET api/pubg
-        [HttpGet]
-        public IEnumerable<string> GetPlayer(string player)
+        private IConfiguration Configuration { get; set; }
+
+        //Connect Configuration file
+        public PubgController(IConfiguration config)
         {
-            return new string[] { "Pubg", "Controller" };
+            Configuration = config;
+        }
+
+        // GET api/pubg/player
+        [HttpGet("{player}")]
+        public Task<IEnumerable<PubgPlayer>> GetPlayer(string player)
+        {
+            return new PubgApi(Configuration["PubgApiKey"])
+                .GetPlayerByNameAsync(player);
         }
     }
 }
