@@ -23,11 +23,23 @@ namespace PubgServiceLayer.Controllers
         }
 
         // GET api/pubg/player
+        // Dewfaults to NA
         [HttpGet("{player}")]
         public Task<IEnumerable<PubgPlayer>> GetPlayer(string player)
         {
             return new PubgApi(Configuration["PubgApiKey"])
                 .GetPlayerByNameAsync(player);
         }
+
+
+        // GET api/pubg/seasons/region
+        // Dewfaults to NA
+        [HttpGet("Seasons/{region}")]
+        public Task<IEnumerable<PubgSeason>> GetSeasons(PubgRegion region)
+        {
+            return new PubgApi(Configuration["PubgApiKey"])
+                .GetSeasons(region);
+        }
+
     }
 }

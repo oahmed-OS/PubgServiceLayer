@@ -16,7 +16,7 @@ namespace PubgServiceLayer.Api
             });
         }
 
-        public Task<IEnumerable<PubgPlayer>> GetPlayerByNameAsync(string playerName)
+        public Task<IEnumerable<PubgPlayer>> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
             PubgPlayerService playerService = new PubgPlayerService();
 
@@ -25,8 +25,13 @@ namespace PubgServiceLayer.Api
                 PlayerNames = new string[] { playerName }
             };
 
-            return playerService.GetPlayersAsync(PubgRegion.PCNorthAmerica,
+            return playerService.GetPlayersAsync(region,
                 request);
+        }
+
+        public Task<IEnumerable<PubgSeason>> GetSeasons(PubgRegion region = PubgRegion.PCNorthAmerica)
+        {
+            return new PubgSeasonService().GetSeasonsAsync(region);
         }
     }
 }
