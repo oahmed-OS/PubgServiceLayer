@@ -11,9 +11,9 @@ namespace PubgServiceLayer.Controllers
     [Route("api/Pubg")]
     public class PubgController : Controller
     {
-        // GET api/values
+        // GET api/pubg
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<string> GetPlayer(string player)
         {
             return new string[] { "Pubg", "Controller" };
         }
