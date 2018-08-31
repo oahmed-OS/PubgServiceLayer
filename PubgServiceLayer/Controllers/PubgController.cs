@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Pubg.Net;
@@ -22,23 +19,36 @@ namespace PubgServiceLayer.Controllers
             Configuration = config;
         }
 
-        // GET api/pubg/player
-        // Dewfaults to NA
-        [HttpGet("{player}")]
-        public Task<IEnumerable<PubgPlayer>> GetPlayer(string player)
+        // GET api/pubg/Player/{player}
+        [HttpGet("Player/{playerName}")]
+        public async Task<IActionResult> GetPlayer(string playerName)
         {
-            return new PubgApi(Configuration["PubgApiKey"])
-                .GetPlayerByNameAsync(player);
+            if (String.IsNullOrEmpty(playerName))
+                return NotFound();
+
+            var player = await new PubgApi(Configuration["PubgApiKey"])
+                .GetPlayerByNameAsync(playerName);
+
+            return Ok(player);
         }
 
-
-        // GET api/pubg/seasons/region
-        // Dewfaults to NA
+        // GET api/pubg/seasons/{region}
         [HttpGet("Seasons/{region}")]
-        public Task<IEnumerable<PubgSeason>> GetSeasons(PubgRegion region)
+        public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
-            return new PubgApi(Configuration["PubgApiKey"])
+            var seasons = await new PubgApi(Configuration["PubgApiKey"])
                 .GetSeasons(region);
+            return Ok(seasons);
+        }
+
+        // GET api/pubg/playerstats/{player}
+        [HttpGet("PlayerStats/{playerName}")]
+        public async Task<IActionResult> GetPlayerStats(string playerName)
+        {
+            if (String.IsNullOrEmpty(playerName))
+                return NotFound();
+
+            return Ok();
         }
 
     }

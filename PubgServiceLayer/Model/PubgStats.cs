@@ -1,7 +1,7 @@
 ﻿namespace PubgServiceLayer.Model
 {
     // Represents a Compressed Game Mode Stats entity
-    class PubgStats
+    public class PubgStats
     {
         //Using float for speed
         float KillDeath { get; set; }
