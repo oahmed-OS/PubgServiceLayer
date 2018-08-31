@@ -43,21 +43,19 @@ namespace PubgServiceLayer.Controllers
         [HttpGet("Seasons/{region}")]
         public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
-            var seasons = await new PubgApi(Configuration["PubgApiKey"])
-                .GetSeasonsAsync(region);
+            var seasons = await pubgApi.GetSeasonsAsync(region);
             return Ok(seasons);
         }
 
         // GET api/pubg/playerstats/{player}
         [HttpGet("PlayerStats/{playerName}")]
-        public async Task<IActionResult> GetPlayerStats(string playerName)
+        public async Task<IActionResult> GetPlayerStats(string playerName, string seasonId)
         {
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
 
-            //TODO: Complete Function
-            await Task.Delay(1);
-            return Ok();
+            var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+            return Ok(stats);
         }
 
     }

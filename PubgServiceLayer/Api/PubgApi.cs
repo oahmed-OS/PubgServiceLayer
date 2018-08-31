@@ -6,7 +6,7 @@ using Pubg.Net;
 
 namespace PubgServiceLayer.Api
 {
-    public class PubgApi
+    public class PubgApi : IPubgApi
     {
 
         public PubgApi(string apiKey)
@@ -16,25 +16,6 @@ namespace PubgServiceLayer.Api
                 opt.ApiKey = apiKey;
             });
 
-        }
-
-        public PubgPlayer GetPlayerByName(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
-        {
-
-            PubgPlayerService playerService = new PubgPlayerService();
-
-            var request = new GetPubgPlayersRequest
-            {
-                PlayerNames = new string[] { playerName }
-            };
-
-            List<PubgPlayer> response = (List<PubgPlayer>)playerService.GetPlayers(region,
-                request);
-
-            if (response.Count > 0)
-                return response[0];
-
-            return null;
         }
 
         public async Task<PubgPlayer> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
@@ -53,8 +34,19 @@ namespace PubgServiceLayer.Api
 
         public Task<IEnumerable<PubgSeason>> GetSeasonsAsync(PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            return new PubgSeasonService().GetSeasonsAsync(region);
+            return new PubgSeasonService()
+                .GetSeasonsAsync(region);
         }
 
+        public Task<PubgPlayerSeason> GetPlayerSeasonAsync(string playerId, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
+        {
+            return new PubgPlayerService()
+                .GetPlayerSeasonAsync(region, playerId, seasonId);
+        }
+
+        public Task<PubgMatch> GetMatchAsync(string matchId, PubgRegion region = PubgRegion.PCNorthAmerica)
+        {
+            return new PubgMatchService().GetMatchAsync(region, matchId);
+        }
     }
 }
