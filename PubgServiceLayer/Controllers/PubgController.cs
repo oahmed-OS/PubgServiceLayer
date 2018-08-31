@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Pubg.Net;
 using PubgServiceLayer.Api;
+using PubgServiceLayer.Services;
 
 namespace PubgServiceLayer.Controllers
 {
@@ -13,10 +14,14 @@ namespace PubgServiceLayer.Controllers
     {
         private IConfiguration Configuration { get; set; }
 
+        private readonly PubgCacheManager pubgApi;
+
         //Connect Configuration file
-        public PubgController(IConfiguration config)
+        public PubgController(IConfiguration config, IRedisService redisService)
         {
             Configuration = config;
+            pubgApi = new PubgCacheManager(Configuration["PubgApiKey"], 
+                redisService);
         }
 
         // GET api/pubg/Player/{player}
@@ -26,8 +31,10 @@ namespace PubgServiceLayer.Controllers
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
 
-            var player = await new PubgApi(Configuration["PubgApiKey"])
-                .GetPlayerByNameAsync(playerName);
+            //var player = await new PubgApi(Configuration["PubgApiKey"])
+            //    .GetPlayerByNameAsync(playerName);
+
+            var player = await pubgApi.GetPlayerByNameAsync(playerName);
 
             return Ok(player);
         }
@@ -37,7 +44,7 @@ namespace PubgServiceLayer.Controllers
         public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
             var seasons = await new PubgApi(Configuration["PubgApiKey"])
-                .GetSeasons(region);
+                .GetSeasonsAsync(region);
             return Ok(seasons);
         }
 
@@ -48,6 +55,8 @@ namespace PubgServiceLayer.Controllers
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
 
+            //TODO: Complete Function
+            await Task.Delay(1);
             return Ok();
         }
 

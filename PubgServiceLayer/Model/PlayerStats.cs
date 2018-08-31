@@ -5,16 +5,16 @@
 
         string PlayerName { get; set; }
 
-        PubgStats SoloFPP { get; set; }
+        PubgModeStats SoloFPP { get; set; }
 
-        PubgStats DuoFPP { get; set; }
+        PubgModeStats DuoFPP { get; set; }
 
-        PubgStats SquadFPP { get; set; }
+        PubgModeStats SquadFPP { get; set; }
 
-        PubgStats SoloTPP { get; set; }
+        PubgModeStats SoloTPP { get; set; }
 
-        PubgStats DuoTPP { get; set; }
+        PubgModeStats DuoTPP { get; set; }
 
-        PubgStats SquadTPP { get; set; }
+        PubgModeStats SquadTPP { get; set; }
     }
 }
