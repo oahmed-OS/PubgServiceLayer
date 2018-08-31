@@ -4,10 +4,10 @@
     public class PubgModeStats
     {
         //Using float for speed
-        float KillDeath { get; set; }
+        public float KillDeath { get; set; }
 
-        int AverageDamage { get; set; }
+        public int AverageDamage { get; set; }
 
-        float WinRatio { get; set; }
+        public float WinRatio { get; set; }
     }
 }

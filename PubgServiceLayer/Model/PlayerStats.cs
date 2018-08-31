@@ -3,18 +3,18 @@
     public class PlayerStats
     {
 
-        string PlayerName { get; set; }
+        public string PlayerName { get; set; }
 
-        PubgModeStats SoloFPP { get; set; }
+        public PubgModeStats SoloFPP { get; set; }
 
-        PubgModeStats DuoFPP { get; set; }
+        public PubgModeStats DuoFPP { get; set; }
 
-        PubgModeStats SquadFPP { get; set; }
+        public PubgModeStats SquadFPP { get; set; }
 
-        PubgModeStats SoloTPP { get; set; }
+        public PubgModeStats SoloTPP { get; set; }
 
-        PubgModeStats DuoTPP { get; set; }
+        public PubgModeStats DuoTPP { get; set; }
 
-        PubgModeStats SquadTPP { get; set; }
+        public PubgModeStats SquadTPP { get; set; }
     }
 }

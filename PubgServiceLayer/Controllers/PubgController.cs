@@ -36,6 +36,9 @@ namespace PubgServiceLayer.Controllers
 
             var player = await pubgApi.GetPlayerByNameAsync(playerName);
 
+            if (player == null)
+                return NotFound("Invalid Player Name");
+
             return Ok(player);
         }
 
@@ -44,6 +47,10 @@ namespace PubgServiceLayer.Controllers
         public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
             var seasons = await pubgApi.GetSeasonsAsync(region);
+
+            if (seasons == null)
+                return NotFound("Invalid Region");
+
             return Ok(seasons);
         }
 
@@ -55,6 +62,10 @@ namespace PubgServiceLayer.Controllers
                 return NotFound();
 
             var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+
+            if (stats == null)
+                return NotFound("Invalid Player Name or Season Id");
+
             return Ok(stats);
         }
 

@@ -61,7 +61,7 @@ namespace PubgServiceLayer.Api
                 //Cache data not found or expired
                 result = await pubgApi.GetPlayerByNameAsync(playerName, region).ConfigureAwait(false);
 
-                if (!String.IsNullOrEmpty(result.Name))
+                if (result != null)
                 {
                     _redisService.Set(playerName + region, JsonConvert.SerializeObject(new PlayerCache(result)));
                 }
@@ -85,7 +85,7 @@ namespace PubgServiceLayer.Api
                 //Cache data not found or expired
                 result = await pubgApi.GetPlayerSeasonAsync(playerId, seasonId, region).ConfigureAwait(false);
 
-                if (!String.IsNullOrEmpty(result.Id))
+                if (result != null)
                 {
                     _redisService.Set(playerId + seasonId + region, JsonConvert.SerializeObject(result));
                 }
@@ -102,15 +102,24 @@ namespace PubgServiceLayer.Api
         public async Task<PlayerStats> GetPlayerStatsAsync(string playerName, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
             PlayerStats result = new PlayerStats();
-            var cacheResult = await _redisService.GetAsync(playerName + region + seasonId + "compressed").ConfigureAwait(false);
+            var cacheResult = await _redisService.GetAsync(playerName + seasonId + region).ConfigureAwait(false);
 
-            if(String.IsNullOrEmpty(cacheResult))
+            if (String.IsNullOrEmpty(cacheResult))
             {
                 //Cache data not found or expired
-                
+                result = await StatsHelper.FilterStats(this, playerName, seasonId, region).ConfigureAwait(false);
+
+                if (result != null)
+                {
+                    _redisService.Set(playerName + seasonId + region, JsonConvert.SerializeObject(result));
+                }
+
             }
-
-
+            else
+            {
+                //Pull from Cache
+                result = JsonConvert.DeserializeObject<PlayerStats>(cacheResult);
+            }
             return result;
         }
 
@@ -124,7 +133,7 @@ namespace PubgServiceLayer.Api
                 //Cache data not found or expired
                 result = await pubgApi.GetSeasonsAsync(region).ConfigureAwait(false);
 
-                if (result.Count() > 0)
+                if (result != null && result.Count() > 0)
                 {
                     _redisService.Set("seasons", JsonConvert.SerializeObject(result));
                 }
@@ -149,7 +158,7 @@ namespace PubgServiceLayer.Api
                 //Cache data not found or expired
                 result = await pubgApi.GetMatchAsync(matchId, region).ConfigureAwait(false);
 
-                if (!String.IsNullOrEmpty(result.Id))
+                if (result != null)
                 {
                     _redisService.Set(matchId + region, JsonConvert.SerializeObject(result));
                 }
