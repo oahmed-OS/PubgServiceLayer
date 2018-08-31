@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Pubg.Net;
 
@@ -36,7 +37,7 @@ namespace PubgServiceLayer.Api
             return null;
         }
 
-        public Task<IEnumerable<PubgPlayer>> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
+        public async Task<PubgPlayer> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
 
             PubgPlayerService playerService = new PubgPlayerService();
@@ -45,14 +46,15 @@ namespace PubgServiceLayer.Api
             {
                 PlayerNames = new string[] { playerName }
             };
-
-            return playerService.GetPlayersAsync(region,
-                request);
+            var response = await playerService.GetPlayersAsync(region,
+                request).ConfigureAwait(false);
+            return response.First();
         }
 
         public Task<IEnumerable<PubgSeason>> GetSeasonsAsync(PubgRegion region = PubgRegion.PCNorthAmerica)
         {
             return new PubgSeasonService().GetSeasonsAsync(region);
         }
+
     }
 }
