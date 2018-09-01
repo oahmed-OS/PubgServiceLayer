@@ -24,8 +24,8 @@ namespace PubgServiceLayer.Controllers
                 redisService);
         }
 
-        // GET api/pubg/Player/{player}
-        [HttpGet("Player/{playerName}")]
+        // GET api/pubg/player/{player}
+        [HttpGet("player/{playerName}")]
         public async Task<IActionResult> GetPlayer(string playerName)
         {
             if (String.IsNullOrEmpty(playerName))
@@ -43,7 +43,7 @@ namespace PubgServiceLayer.Controllers
         }
 
         // GET api/pubg/seasons/{region}
-        [HttpGet("Seasons/{region}")]
+        [HttpGet("seasons/{region}")]
         public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
             var seasons = await pubgApi.GetSeasonsAsync(region);
@@ -54,19 +54,26 @@ namespace PubgServiceLayer.Controllers
             return Ok(seasons);
         }
 
-        // GET api/pubg/playerstats/{player}
-        [HttpGet("PlayerStats/{playerName}")]
+        // GET api/pubg/playerstats/{player}/season/{seasonId}
+        [HttpGet("playerstats/{playerName}/season/{seasonId}")]
         public async Task<IActionResult> GetPlayerStats(string playerName, string seasonId)
         {
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
+            try
+            {
+                var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+                if (stats == null)
+                    return NotFound("Invalid Player Name or Season Id");
 
-            var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+                return Ok(stats);
+            }catch(Exception e)
+            {
+                return BadRequest(e);
+            }
+            
 
-            if (stats == null)
-                return NotFound("Invalid Player Name or Season Id");
-
-            return Ok(stats);
+            
         }
 
     }

@@ -63,7 +63,7 @@ namespace PubgServiceLayer.Api
 
                 if (result != null)
                 {
-                    _redisService.Set(playerName + region, JsonConvert.SerializeObject(new PlayerCache(result)));
+                    _redisService.Set(playerName + region, JsonConvert.SerializeObject((PlayerCache)result));
                 }
 
             }
@@ -87,7 +87,7 @@ namespace PubgServiceLayer.Api
 
                 if (result != null)
                 {
-                    _redisService.Set(playerId + seasonId + region, JsonConvert.SerializeObject(result));
+                    _redisService.Set(playerId + seasonId + region, JsonConvert.SerializeObject((PlayerSeasonCache)result));
                 }
 
             }
@@ -107,7 +107,7 @@ namespace PubgServiceLayer.Api
             if (String.IsNullOrEmpty(cacheResult))
             {
                 //Cache data not found or expired
-                result = await StatsHelper.FilterStats(this, playerName, seasonId, region).ConfigureAwait(false);
+                result = await new StatsHelper(this).FilterStats(playerName, seasonId, region).ConfigureAwait(false);
 
                 if (result != null)
                 {

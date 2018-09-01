@@ -8,23 +8,43 @@ using System.Threading.Tasks;
 
 namespace PubgServiceLayer.Api
 {
-    public static class StatsHelper
+    public class StatsHelper
     {
-        public static async Task<PlayerStats> FilterStats(PubgCacheManager pubgApi, 
-            string playerName, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
+        private readonly PubgCacheManager pubgApi;
+        private string playerName;
+        private string seasonId;
+        private PubgRegion region;
+        private string playerId;
+        private const double ValidMatchTime = 300;
+
+        public StatsHelper(PubgCacheManager pubgApi)
         {
+            this.pubgApi = pubgApi;
+        }
+
+        public async Task<PlayerStats> FilterStats(string playerName, string seasonId,
+            PubgRegion region = PubgRegion.PCNorthAmerica)
+        {
+
             //Wrapping in try catch in case player name or season id is incorrect
             try
             {
 
                 PlayerStats playerStats = new PlayerStats();
 
+                //Populate object properties
+                this.playerName = playerName;
+                this.seasonId = seasonId;
+                this.region = region;
+
                 //Get Player
                 var player = await pubgApi.GetPlayerByNameAsync(playerName)
                     .ConfigureAwait(false);
 
+                playerId = player.Id;
+
                 //Get Player Season
-                var playerSeason = await pubgApi.GetPlayerSeasonAsync(player.Id,
+                var playerSeason = await pubgApi.GetPlayerSeasonAsync(playerId,
                     seasonId, region).ConfigureAwait(false);
 
                 //Filter Matches
@@ -32,7 +52,7 @@ namespace PubgServiceLayer.Api
                     .ConfigureAwait(false);
 
                 //Compute Stats
-                return BuildStats(playerName, playerSeason.GameModeStats,
+                return BuildStats(playerSeason.GameModeStats,
                     validMatches);
 
             }
@@ -42,7 +62,7 @@ namespace PubgServiceLayer.Api
             return null;
         }
 
-        private static List<string> LoadMatches(PubgPlayerSeason playerSeason)
+        private List<string> LoadMatches(PubgPlayerSeason playerSeason)
         {
             List<string> matches = new List<string>();
 
@@ -58,13 +78,34 @@ namespace PubgServiceLayer.Api
             return matches;
         }
 
-        private static Task<int> FilterMatches(IEnumerable<string> matchIds)
+        //TODO: Complete Method to return number of valid matches
+        private async Task<int> FilterMatches(List<string> matchIds)
         {
+            List<Task<bool>> matchTasks = new List<Task<bool>>();
+            for (int i = 0; i < matchIds.Count(); i++)
+                matchTasks.Add(ValidateMatch(matchIds[i]));
 
-            return null;
+            var result = await Task.WhenAll(matchTasks).ConfigureAwait(false);
+
+            return result.Select(x => x)
+                .Where(x => x == true)
+                .Count(); ;
         }
 
-        private static PlayerStats BuildStats(string playerName, PubgSeasonStats stats, int validMatches)
+        private async Task<bool> ValidateMatch(string matchId)
+        {
+            var match = await pubgApi.GetMatchAsync(matchId, region).ConfigureAwait(false);
+
+            var player = match.Rosters.SelectMany(c => c.Participants)
+                .Where(x => x.Stats.PlayerId == playerId).First();
+
+            if (player.Stats.TimeSurvived > ValidMatchTime || player.Stats.Kills > 0)
+                return true;
+
+            return false;
+        }
+
+        private PlayerStats BuildStats(PubgSeasonStats stats, int validMatches)
         {
             PlayerStats playerStats = new PlayerStats();
             playerStats.PlayerName = playerName;
@@ -81,7 +122,7 @@ namespace PubgServiceLayer.Api
             return playerStats;
         }
 
-        private static PubgModeStats PullModeStats(PubgGameModeStats stats, int validMatches)
+        private PubgModeStats PullModeStats(PubgGameModeStats stats, int validMatches)
         {
             return new PubgModeStats
             {
