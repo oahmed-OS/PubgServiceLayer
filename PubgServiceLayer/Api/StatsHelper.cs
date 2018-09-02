@@ -15,6 +15,8 @@ namespace PubgServiceLayer.Api
         private string seasonId;
         private PubgRegion region;
         private string playerId;
+
+        //TODO: Pull this value from Config file
         private const double ValidMatchTime = 300;
 
         public StatsHelper(PubgCacheManager pubgApi)
@@ -38,18 +40,17 @@ namespace PubgServiceLayer.Api
                 this.region = region;
 
                 //Get Player
-                var player = await pubgApi.GetPlayerByNameAsync(playerName)
-                    .ConfigureAwait(false);
+                var player = await pubgApi.GetPlayerByNameAsync(playerName);
 
                 playerId = player.Id;
 
                 //Get Player Season
+
                 var playerSeason = await pubgApi.GetPlayerSeasonAsync(playerId,
-                    seasonId, region).ConfigureAwait(false);
+                    seasonId, region);
 
                 //Filter Matches
-                var validMatches = await FilterMatches(LoadMatches(playerSeason))
-                    .ConfigureAwait(false);
+                var validMatches = await FilterMatches(LoadMatches(playerSeason));
 
                 //Compute Stats
                 return BuildStats(playerSeason.GameModeStats,
@@ -81,25 +82,22 @@ namespace PubgServiceLayer.Api
         //TODO: Complete Method to return number of valid matches
         private async Task<int> FilterMatches(List<string> matchIds)
         {
-            List<Task<bool>> matchTasks = new List<Task<bool>>();
-            for (int i = 0; i < matchIds.Count(); i++)
-                matchTasks.Add(ValidateMatch(matchIds[i]));
 
-            var result = await Task.WhenAll(matchTasks).ConfigureAwait(false);
+            var _matchTasks = matchIds.Select(t => ValidateMatch(t));
 
-            return result.Select(x => x)
-                .Where(x => x == true)
-                .Count(); ;
+            var result = await Task.WhenAll(_matchTasks);
+
+            return result.Count(x => x == true);
         }
 
         private async Task<bool> ValidateMatch(string matchId)
         {
-            var match = await pubgApi.GetMatchAsync(matchId, region).ConfigureAwait(false);
+            var match = await pubgApi.GetMatchAsync(matchId, region);
 
             var player = match.Rosters.SelectMany(c => c.Participants)
-                .Where(x => x.Stats.PlayerId == playerId).First();
+                .FirstOrDefault(x => x.Stats.PlayerId == playerId);
 
-            if (player.Stats.TimeSurvived > ValidMatchTime || player.Stats.Kills > 0)
+            if (player != null && (player.Stats.TimeSurvived > ValidMatchTime || player.Stats.Kills > 0))
                 return true;
 
             return false;
@@ -128,7 +126,7 @@ namespace PubgServiceLayer.Api
             {
                 KillDeath = stats.Kills / (float)validMatches,
                 AverageDamage = (int)Math.Round(stats.DamageDealt / validMatches),
-                WinRatio = stats.Wins / (float)validMatches
+                WinRatio = (stats.Wins / (float)validMatches) * 100
             };
         }
     }

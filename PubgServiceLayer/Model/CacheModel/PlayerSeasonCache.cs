@@ -50,5 +50,21 @@ namespace PubgServiceLayer.Model
                 SquadFPPMatchIds = playerSeason.SquadFPPMatchIds
             };
         }
+
+        public static implicit operator PubgPlayerSeason(PlayerSeasonCache playerSeason)
+        {
+            return new PubgPlayerSeason
+            {
+                PlayerId = playerSeason.PlayerId,
+                SeasonId = playerSeason.SeasonId,
+                GameModeStats = playerSeason.GameModeStats,
+                SoloMatchIds = playerSeason.SoloMatchIds,
+                DuoMatchIds = playerSeason.DuoMatchIds,
+                SquadMatchIds = playerSeason.SquadMatchIds,
+                SoloFPPMatchIds = playerSeason.SoloFPPMatchIds,
+                DuoFPPMatchIds = playerSeason.DuoFPPMatchIds,
+                SquadFPPMatchIds = playerSeason.SquadFPPMatchIds
+            };
+        }
     }
 }

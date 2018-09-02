@@ -23,151 +23,71 @@ namespace PubgServiceLayer.Api
             _redisService = redisService;
         }
 
-        //Version 1
-        //public Task<PlayerCache> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
-        //{
-        //    return Task.Run<PlayerCache>(() =>
-        //    {
-        //        PlayerCache result = new PlayerCache();
-        //        var cacheResult = _redisService.Get(playerName + region);
-
-        //        //Call Api if no cach for player
-        //        if(String.IsNullOrEmpty(cacheResult))
-        //        {
-        //            result = new PlayerCache(pubgApi.GetPlayerByName(playerName, region));
-        //            if(!String.IsNullOrEmpty(result.Name))
-        //            {
-        //                _redisService.Set(playerName + region, JsonConvert.SerializeObject(result));
-        //            }
-
-        //        }
-        //        else
-        //        {
-        //            //Pull from Cache
-        //            result = JsonConvert.DeserializeObject<PlayerCache>(cacheResult);
-        //        }
-        //        return result;
-        //    });
-        //}
-
-        //Version 2
         public async Task<PubgPlayer> GetPlayerByNameAsync(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            PubgPlayer result = new PubgPlayer();
-            var cacheResult = await _redisService.GetAsync(playerName + region).ConfigureAwait(false);
-
-            if (String.IsNullOrEmpty(cacheResult))
+            return await GetAsync<PlayerCache>(playerName + region, async (t) =>
             {
-                //Cache data not found or expired
-                result = await pubgApi.GetPlayerByNameAsync(playerName, region).ConfigureAwait(false);
-
-                if (result != null)
-                {
-                    _redisService.Set(playerName + region, JsonConvert.SerializeObject((PlayerCache)result));
-                }
-
-            }
-            else
-            {
-                //Pull from Cache
-                result = JsonConvert.DeserializeObject<PubgPlayer>(cacheResult);
-            }
-            return result;
+                var retVal = await pubgApi.GetPlayerByNameAsync(playerName, region);
+                return (PlayerCache)retVal;
+            });
         }
 
         public async Task<PubgPlayerSeason> GetPlayerSeasonAsync(string playerId, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            PubgPlayerSeason result = new PubgPlayerSeason();
-            var cacheResult = await _redisService.GetAsync(playerId + seasonId + region).ConfigureAwait(false);
-
-            if (String.IsNullOrEmpty(cacheResult))
+            return await GetAsync<PlayerSeasonCache>(playerId + seasonId + region, async (t) =>
             {
-                //Cache data not found or expired
-                result = await pubgApi.GetPlayerSeasonAsync(playerId, seasonId, region).ConfigureAwait(false);
-
-                if (result != null)
-                {
-                    _redisService.Set(playerId + seasonId + region, JsonConvert.SerializeObject((PlayerSeasonCache)result));
-                }
-
-            }
-            else
-            {
-                //Pull from Cache
-                result = JsonConvert.DeserializeObject<PubgPlayerSeason>(cacheResult);
-            }
-            return result;
+                var retVal = await pubgApi.GetPlayerSeasonAsync(playerId, seasonId, region);
+                return (PlayerSeasonCache)retVal;
+            });
         }
 
         public async Task<PlayerStats> GetPlayerStatsAsync(string playerName, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            PlayerStats result = new PlayerStats();
-            var cacheResult = await _redisService.GetAsync(playerName + seasonId + region).ConfigureAwait(false);
-
-            if (String.IsNullOrEmpty(cacheResult))
+            return await GetAsync<PlayerStats>(playerName + seasonId + region, async (t) =>
             {
-                //Cache data not found or expired
-                result = await new StatsHelper(this).FilterStats(playerName, seasonId, region).ConfigureAwait(false);
-
-                if (result != null)
-                {
-                    _redisService.Set(playerName + seasonId + region, JsonConvert.SerializeObject(result));
-                }
-
-            }
-            else
-            {
-                //Pull from Cache
-                result = JsonConvert.DeserializeObject<PlayerStats>(cacheResult);
-            }
-            return result;
+                return await new StatsHelper(this).FilterStats(playerName, seasonId, region);
+            });
         }
 
         public async Task<IEnumerable<PubgSeason>> GetSeasonsAsync(PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            IEnumerable<PubgSeason> result = new List<PubgSeason>();
-            var cacheResult = await _redisService.GetAsync("seasons").ConfigureAwait(false);
-
-            if (String.IsNullOrEmpty(cacheResult))
+            return await GetAsync<List<PubgSeason>>("seasons", async (t) =>
             {
-                //Cache data not found or expired
-                result = await pubgApi.GetSeasonsAsync(region).ConfigureAwait(false);
-
-                if (result != null && result.Count() > 0)
-                {
-                    _redisService.Set("seasons", JsonConvert.SerializeObject(result));
-                }
-
-            }
-            else
-            {
-                //Pull from Cache
-                result = JsonConvert.DeserializeObject<IEnumerable<PubgSeason>>(cacheResult);
-            }
-            return result;
+                var retVal = await pubgApi.GetSeasonsAsync(region);
+                return retVal.ToList();
+            });
         }
 
         //TODO: Refactor cache so we only store needed info, not entire match object
         public async Task<PubgMatch> GetMatchAsync(string matchId, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
-            PubgMatch result = new PubgMatch();
-            var cacheResult = await _redisService.GetAsync(matchId + region).ConfigureAwait(false);
+            return await GetAsync<PubgMatch>(matchId + region, async (t) =>
+            {
+                return await pubgApi.GetMatchAsync(matchId, region);
+            });
+        }
+
+        public async Task<T> GetAsync<T>(string key, Func<T, Task<T>> action) where T : class, new()
+        {
+           var result = new T();
+            _redisService.Remove(key);
+            var cacheResult = await _redisService.GetAsync(key);
 
             if (String.IsNullOrEmpty(cacheResult))
             {
                 //Cache data not found or expired
-                result = await pubgApi.GetMatchAsync(matchId, region).ConfigureAwait(false);
+                result = await action(result);
 
                 if (result != null)
                 {
-                    _redisService.Set(matchId + region, JsonConvert.SerializeObject(result));
+                    _redisService.Set(key, JsonConvert.SerializeObject(result));
                 }
 
             }
             else
             {
                 //Pull from Cache
-                result = JsonConvert.DeserializeObject<PubgMatch>(cacheResult);
+                result = JsonConvert.DeserializeObject<T>(cacheResult);
             }
             return result;
         }

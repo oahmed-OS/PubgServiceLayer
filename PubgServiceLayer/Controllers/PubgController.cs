@@ -63,6 +63,7 @@ namespace PubgServiceLayer.Controllers
             try
             {
                 var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+
                 if (stats == null)
                     return NotFound("Invalid Player Name or Season Id");
 
@@ -71,8 +72,6 @@ namespace PubgServiceLayer.Controllers
             {
                 return BadRequest(e);
             }
-            
-
             
         }
 
