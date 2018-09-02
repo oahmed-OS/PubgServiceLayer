@@ -24,53 +24,59 @@ namespace PubgServiceLayer.Controllers
                 redisService);
         }
 
-        // GET api/pubg/player/{player}
-        [HttpGet("player/{playerName}")]
-        public async Task<IActionResult> GetPlayer(string playerName)
+        // GET api/pubg/player/{player}/server/{region}
+        [HttpGet("player/{playerName}/server/{region}")]
+        public async Task<IActionResult> GetPlayer(string playerName, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
 
-            //var player = await new PubgApi(Configuration["PubgApiKey"])
-            //    .GetPlayerByNameAsync(playerName);
+            try
+            {
+                var player = await pubgApi.GetPlayerByNameAsync(playerName, region);
+                return Ok(player);
+            }
+            catch (Exception e)
+            {
+                return NotFound("Player Not Found");
+            }
 
-            var player = await pubgApi.GetPlayerByNameAsync(playerName);
-
-            if (player == null)
-                return NotFound("Invalid Player Name");
-
-            return Ok(player);
+            
         }
 
         // GET api/pubg/seasons/{region}
         [HttpGet("seasons/{region}")]
         public async Task<IActionResult> GetSeasons(PubgRegion region)
         {
-            var seasons = await pubgApi.GetSeasonsAsync(region);
+            try
+            {
+                var seasons = await pubgApi.GetSeasonsAsync(region);
+                return Ok(seasons);
+            }
+            catch (Exception e)
+            {
+                return NotFound("Seasons Not Found For Region");
 
-            if (seasons == null)
-                return NotFound("Invalid Region");
-
-            return Ok(seasons);
+            }            
         }
 
-        // GET api/pubg/playerstats/{player}/season/{seasonId}
-        [HttpGet("playerstats/{playerName}/season/{seasonId}")]
-        public async Task<IActionResult> GetPlayerStats(string playerName, string seasonId)
+        // GET api/pubg/playerstats/{player}/season/{seasonId}/region/{region}
+        [HttpGet("playerstats/{playerName}/season/{seasonId}/region/{region}")]
+        public async Task<IActionResult> GetPlayerStats(string playerName, string seasonId, PubgRegion region = PubgRegion.PCNorthAmerica)
         {
             if (String.IsNullOrEmpty(playerName))
                 return NotFound();
             try
             {
-                var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId);
+                var stats = await pubgApi.GetPlayerStatsAsync(playerName, seasonId, region);
 
-                if (stats == null)
-                    return NotFound("Invalid Player Name or Season Id");
+                if(stats == null)
+                    return NotFound("Season Data Not Found");
 
                 return Ok(stats);
             }catch(Exception e)
             {
-                return BadRequest(e);
+                return NotFound("Invalid Player Name or Season Id");
             }
             
         }

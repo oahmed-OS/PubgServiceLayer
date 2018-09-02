@@ -53,8 +53,9 @@ namespace PubgServiceLayer.Api
                 var validMatches = await FilterMatches(LoadMatches(playerSeason));
 
                 //Compute Stats
-                return BuildStats(playerSeason.GameModeStats,
-                    validMatches);
+                if(validMatches > 0)
+                    return BuildStats(playerSeason.GameModeStats,
+                        validMatches);
 
             }
             catch (NullReferenceException e) { }

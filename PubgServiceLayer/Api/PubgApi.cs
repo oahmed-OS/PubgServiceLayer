@@ -28,7 +28,8 @@ namespace PubgServiceLayer.Api
                 PlayerNames = new string[] { playerName }
             };
             var response = await playerService.GetPlayersAsync(region,
-                request).ConfigureAwait(false);
+                request);
+
             return response.First();
         }
 
