@@ -58,7 +58,8 @@ namespace PubgServiceLayer.Api
                         validMatches);
 
             }
-            catch (NullReferenceException e) { }
+            catch (NullReferenceException e) {
+            }
 
 
             return null;

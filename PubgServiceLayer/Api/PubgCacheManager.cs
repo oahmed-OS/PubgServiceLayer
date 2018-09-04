@@ -70,7 +70,6 @@ namespace PubgServiceLayer.Api
         public async Task<T> GetAsync<T>(string key, Func<T, Task<T>> action) where T : class, new()
         {
            var result = new T();
-            _redisService.Remove(key);
             var cacheResult = await _redisService.GetAsync(key);
 
             if (String.IsNullOrEmpty(cacheResult))
@@ -80,7 +79,7 @@ namespace PubgServiceLayer.Api
 
                 if (result != null)
                 {
-                    _redisService.Set(key, JsonConvert.SerializeObject(result));
+                    await _redisService.SetAsync(key, JsonConvert.SerializeObject(result));
                 }
 
             }
