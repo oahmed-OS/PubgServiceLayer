@@ -126,9 +126,9 @@ namespace PubgServiceLayer.Api
         {
             return new PubgModeStats
             {
-                KillDeath = stats.Kills / (float)validMatches,
+                KillDeath = Math.Round(stats.Kills / (float)validMatches, 2),
                 AverageDamage = (int)Math.Round(stats.DamageDealt / validMatches),
-                WinRatio = (stats.Wins / (float)validMatches) * 100
+                WinRatio = Math.Round((stats.Wins / (float)validMatches) * 100, 1)
             };
         }
     }
